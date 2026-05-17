@@ -1,0 +1,47 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  artwork:
+    build:
+      context: .
+      dockerfile: services/artwork/Dockerfile
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+
+  signature:
+    build:
+      context: .
+      dockerfile: services/signature/Dockerfile
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    env_file: .env
+    depends_on:
+      - artwork
+      - signature
+    ports:
+      - "8000:8000"
