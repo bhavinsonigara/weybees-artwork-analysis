@@ -34,6 +34,7 @@ OUT = Path(__file__).resolve().parent.parent / "fixtures"
 
 
 def main() -> int:
+    """Download every fixture in FIXTURES into ./fixtures/, skipping ones already present."""
     OUT.mkdir(parents=True, exist_ok=True)
     failed = 0
     with httpx.Client(timeout=30.0, follow_redirects=True, headers={"User-Agent": "WeybeesFixtureFetcher/1.0"}) as client:

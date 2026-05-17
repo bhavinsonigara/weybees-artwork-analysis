@@ -14,21 +14,27 @@ ALLOWED_MEDIA_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 
 class ImageLoadError(ValueError):
+    """Raised when an image cannot be fetched, decoded, or normalised."""
+
     pass
 
 
 @dataclass(frozen=True)
 class LoadedImage:
+    """Normalised image: raw bytes, media type, and SHA-256 of the bytes."""
+
     data: bytes
     media_type: str
     sha256: str
 
     @property
     def base64(self) -> str:
+        """Return the image bytes as a base64 ASCII string."""
         return base64.b64encode(self.data).decode("ascii")
 
 
 async def load(source: str) -> LoadedImage:
+    """Fetch or decode an image from a URL / base64 / data URI and normalise it."""
     if source.startswith(("http://", "https://")):
         data, media_type = await _fetch_url(source)
     else:
@@ -40,6 +46,7 @@ async def load(source: str) -> LoadedImage:
 
 
 async def _fetch_url(url: str) -> tuple[bytes, str]:
+    """Download an image from a URL and return (bytes, media_type)."""
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         resp = await client.get(url, headers={"User-Agent": "WeybeesArtworkBot/1.0"})
         resp.raise_for_status()
@@ -50,6 +57,7 @@ async def _fetch_url(url: str) -> tuple[bytes, str]:
 
 
 def _decode_base64(source: str) -> tuple[bytes, str]:
+    """Decode a base64 payload or `data:<mime>;base64,...` URI into bytes."""
     payload = source
     media_type = "image/jpeg"
     if source.startswith("data:"):
@@ -65,6 +73,7 @@ def _decode_base64(source: str) -> tuple[bytes, str]:
 
 
 def _sniff_media_type(data: bytes) -> str:
+    """Identify an image's media type from its raw bytes using Pillow."""
     try:
         with Image.open(io.BytesIO(data)) as im:
             fmt = (im.format or "").lower()
@@ -77,6 +86,7 @@ def _sniff_media_type(data: bytes) -> str:
 
 
 def _normalize(data: bytes, media_type: str) -> tuple[bytes, str]:
+    """Resize and/or re-encode an image so it fits the vision model's size limits."""
     try:
         im = Image.open(io.BytesIO(data))
         im.load()

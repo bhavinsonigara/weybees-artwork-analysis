@@ -16,15 +16,13 @@ log = logging.getLogger(__name__)
 
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 DEFAULT_MAX_TOKENS = int(os.getenv("GEMINI_MAX_TOKENS", "4096"))
-# Gemini 2.5 models burn output tokens on hidden "thinking" before the visible
-# response. For deterministic structured-JSON tasks like ours we want every
-# output token spent on the JSON itself, so disable thinking explicitly.
 DISABLE_THINKING = os.getenv("GEMINI_DISABLE_THINKING", "1") != "0"
 
 _client: genai.Client | None = None
 
 
 def _get_client() -> genai.Client:
+    """Return a process-wide Gemini client, creating it on first call."""
     global _client
     if _client is None:
         _client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
@@ -33,11 +31,14 @@ def _get_client() -> genai.Client:
 
 @dataclass
 class VisionResult:
+    """Container for one Gemini vision response: raw text and token counts."""
+
     text: str
     input_tokens: int
     output_tokens: int
 
     def as_json(self) -> Any:
+        """Parse the response text as JSON."""
         return _extract_json(self.text)
 
 
@@ -49,6 +50,7 @@ async def call_vision(
     model: str | None = None,
     max_tokens: int | None = None,
 ) -> VisionResult:
+    """Run one Gemini vision call and return the response text + token usage."""
     client = _get_client()
     parts: list[Any] = [
         types.Part.from_bytes(data=img.data, mime_type=img.media_type) for img in images
@@ -91,6 +93,7 @@ _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```", re.DOTALL)
 
 
 def _extract_json(text: str) -> Any:
+    """Parse JSON from model output, tolerating fenced or prose-wrapped responses."""
     match = _JSON_FENCE.search(text)
     candidate = match.group(1) if match else text
     try:

@@ -43,12 +43,14 @@ TASK2_IMAGES = [
 
 
 def as_data_uri(name: str) -> str:
+    """Read a fixture file and return it as a base64 `data:<mime>;base64,...` URI."""
     path = FIXTURES / name
     mime = "image/webp" if path.suffix.lower() == ".webp" else "image/jpeg"
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
 
 def post_json(url: str, payload: dict, timeout: float = 600.0) -> dict:
+    """POST a JSON payload and return the decoded JSON response (or raise on HTTP error)."""
     body = json.dumps(payload).encode("utf-8")
     req = request.Request(url, data=body, method="POST", headers={"Content-Type": "application/json"})
     try:
@@ -60,11 +62,13 @@ def post_json(url: str, payload: dict, timeout: float = 600.0) -> dict:
 
 
 def get_json(url: str, timeout: float = 10.0) -> dict:
+    """GET a URL and return the decoded JSON response."""
     with request.urlopen(url, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
 def env_model() -> str:
+    """Read GEMINI_MODEL from .env so each result can be tagged with the active model."""
     if not ENV_FILE.exists():
         return "unknown"
     for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
@@ -75,7 +79,7 @@ def env_model() -> str:
 
 
 def load_previous() -> tuple[dict, dict]:
-    """Returns (previous_task1_by_image, previous_signatures_by_key) for model preservation."""
+    """Index the previous outputs.json so per-entry `model` tags are preserved across runs."""
     if not OUT.exists():
         return {}, {}
     try:
@@ -93,6 +97,7 @@ def load_previous() -> tuple[dict, dict]:
 
 
 def main() -> int:
+    """Run Task 1 and Task 2 against the fixture set and write outputs.json."""
     current_model = env_model()
     print(f"gateway: {GATEWAY}")
     print(f"current GEMINI_MODEL (from .env): {current_model}")

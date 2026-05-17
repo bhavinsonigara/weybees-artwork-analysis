@@ -21,6 +21,7 @@ app = FastAPI(title="Weybees Artwork Service", version="1.0.0")
 
 
 def _load_prompt() -> tuple[str, str]:
+    """Read the prompt file and split it into (system, user) sections."""
     raw = PROMPT_PATH.read_text(encoding="utf-8")
     system_marker = "## SYSTEM"
     user_marker = "## USER INSTRUCTION"
@@ -36,11 +37,13 @@ SYSTEM_PROMPT, USER_PROMPT = _load_prompt()
 
 @app.get("/health")
 async def health() -> dict[str, str]:
+    """Health check; also reports the active prompt version for debugging."""
     return {"status": "ok", "prompt_version": PROMPT_VERSION}
 
 
 @app.post("/analyze", response_model=ArtworkResult)
 async def analyze(req: AnalyzeRequest) -> ArtworkResult:
+    """Analyse one artwork image and return {keywords, caption, description}."""
     try:
         img = await load(req.image)
     except ImageLoadError as exc:

@@ -24,6 +24,7 @@ app = FastAPI(title="Weybees Signature Service", version="1.0.0")
 
 
 def _split(path: Path) -> tuple[str, str]:
+    """Read a prompt file and split it into (system, user) sections."""
     raw = path.read_text(encoding="utf-8")
     s_marker, u_marker = "## SYSTEM", "## USER INSTRUCTION"
     s_start = raw.index(s_marker) + len(s_marker)
@@ -37,6 +38,7 @@ CLASSIFY_SYSTEM, CLASSIFY_USER = _split(PROMPTS_DIR / "classify_signature_v2.md"
 
 @app.get("/health")
 async def health() -> dict[str, str]:
+    """Health check; also reports the active extract/classify prompt versions."""
     return {
         "status": "ok",
         "extract_prompt": EXTRACT_VERSION,
@@ -46,6 +48,7 @@ async def health() -> dict[str, str]:
 
 @app.post("/extract", response_model=ExtractResponse)
 async def extract(req: ExtractRequest) -> ExtractResponse:
+    """Extract artist signatures from each image and return them as one flat list."""
     loaded: list[LoadedImage] = []
     for src in req.images:
         try:
@@ -63,6 +66,7 @@ async def extract(req: ExtractRequest) -> ExtractResponse:
 
 
 async def _process_image(index: int, img: LoadedImage) -> list[Signature]:
+    """Run the full two-pass signature pipeline (or return cached result) for one image."""
     cache_key = cache.make_key("signature", EXTRACT_VERSION, CLASSIFY_VERSION, img.sha256)
     cached = await cache.get_json(cache_key)
     if cached is not None:
@@ -92,6 +96,7 @@ async def _process_image(index: int, img: LoadedImage) -> list[Signature]:
 
 
 async def _pass1_extract_regions(img: LoadedImage) -> list[dict[str, Any]]:
+    """Pass 1: ask the vision model to transcribe every text region in the image."""
     result = await call_vision(
         system=EXTRACT_SYSTEM,
         user_text=EXTRACT_USER,
@@ -107,6 +112,7 @@ async def _pass1_extract_regions(img: LoadedImage) -> list[dict[str, Any]]:
 
 
 async def _pass2_classify(img: LoadedImage, regions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Pass 2: classify pass-1 regions as signatures vs noise using image + transcribed list."""
     user_prompt = (
         CLASSIFY_USER
         + "\n\n## TEXT REGIONS TO CLASSIFY\n\n```json\n"

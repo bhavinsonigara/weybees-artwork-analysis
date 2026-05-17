@@ -16,6 +16,7 @@ _path = Path(os.getenv("SQLITE_PATH", "./data/history.sqlite3"))
 
 
 def _init() -> None:
+    """Create the SQLite file and `analyses` table if they don't exist."""
     _path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(_path) as conn:
         conn.execute(
@@ -37,6 +38,7 @@ _init()
 
 
 def record(task: str, image_sha: str, result: Any) -> None:
+    """Append one analysis row to the audit log; log and swallow any write error."""
     try:
         with _lock, sqlite3.connect(_path) as conn:
             conn.execute(
