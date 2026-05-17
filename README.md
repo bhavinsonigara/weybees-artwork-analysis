@@ -23,7 +23,7 @@ Each service is its own FastAPI app, its own container, and owns its prompts. Sh
 
 ```bash
 cp .env.example .env
-# edit .env and set ANTHROPIC_API_KEY=sk-ant-...
+# edit .env and set GEMINI_API_KEY=AIza...  (free key from https://aistudio.google.com/app/apikey)
 
 docker compose up --build
 ```
@@ -104,8 +104,8 @@ See `.env.example`. Key ones:
 
 | var | purpose |
 |---|---|
-| `ANTHROPIC_API_KEY` | required, your Anthropic key |
-| `ANTHROPIC_MODEL`   | defaults to `claude-sonnet-4-6` |
+| `GEMINI_API_KEY`    | required, your Google AI Studio key (https://aistudio.google.com/app/apikey — free) |
+| `GEMINI_MODEL`      | defaults to `gemini-2.0-flash` |
 | `REDIS_URL`         | Redis connection string (auto-set inside Docker) |
 | `SQLITE_PATH`       | Where the audit DB lives (auto-set inside Docker) |
 | `VISION_CACHE_TTL_SECONDS` | how long cached vision results live; defaults to 30 days |

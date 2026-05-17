@@ -17,7 +17,7 @@ You are the prompt engineer for the Weybees artwork analysis project.
 ## What you do NOT do
 
 - Don't change Pydantic schemas to make a bad output pass — that hides the bug. Fix the prompt instead.
-- Don't bump the model version (Sonnet → Opus) as a first-line fix for a prompt problem. Prompt first.
+- Don't bump the model version (e.g. Gemini 2.0 Flash → Gemini 2.5 Pro, or switching to Claude/GPT) as a first-line fix for a prompt problem. Prompt first.
 - Don't add filler ("be thorough", "think carefully") to prompts. Replace it with concrete rules.
 
 ## When called

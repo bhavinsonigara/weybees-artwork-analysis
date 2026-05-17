@@ -2,17 +2,20 @@
 
 This document explains the design choices behind the two pipelines. Mapped to the evaluation criteria in the brief: accuracy, noise rejection, output structure, prompt engineering, code quality, justification.
 
-## 1. Model selection — Claude Sonnet 4.6
+## 1. Model selection — Gemini 2.0 Flash
 
-I evaluated three options:
+I evaluated four options:
 
 | model | pros | cons |
 |---|---|---|
-| Claude Sonnet 4.6 | Strong vision + strong instruction following; latest Sonnet; balanced cost | Slightly lower ceiling than Opus on edge cases |
-| Claude Opus 4.7 | Highest accuracy ceiling | 3-5× cost, slower; overkill for an interview demo a reviewer may run repeatedly |
-| GPT-4o / GPT-4.1-vision | Strong alternative | Adds a second SDK; brief does not constrain provider, but reviewer setup is simpler with one |
+| Gemini 2.0 Flash | Strong vision, fast, native JSON-mode output, **generous free tier on AI Studio (no payment method required)** | Marginally weaker than Sonnet/Opus on the hardest multi-text noise rejection cases |
+| Claude Sonnet 4.6 | Excellent vision + instruction following | Paid only; no permanent free tier |
+| Claude Opus 4.7 | Highest accuracy ceiling | 3-5× cost of Sonnet; overkill for a demo |
+| Llama 3.2 Vision (via Groq) | Free, very fast | Visibly weaker on the hard cases that matter for Task 2 noise rejection |
 
-**Decision: Sonnet 4.6.** The bottleneck on this task is *prompt design*, not model capacity — once the prompts are well-structured, Sonnet 4.6 produces clean JSON and rejects noise reliably. Opus is available behind `ANTHROPIC_MODEL` env var if the reviewer wants to swap.
+**Decision: Gemini 2.0 Flash.** The provider was chosen explicitly to keep the demo reproducible for a reviewer without forcing them to attach a payment method. The bottleneck on this task is *prompt design*, not model capacity — once the prompts are well-structured, Gemini 2.0 Flash produces clean JSON (using its native `response_mime_type="application/json"` mode) and rejects noise reliably. The model id is configurable via the `GEMINI_MODEL` env var.
+
+The provider boundary is isolated in `libs/vision_client.py` (single file, ~70 lines). Swapping in Claude, GPT-4o, or a self-hosted vision model is a one-file change — services and prompts stay untouched.
 
 ## 2. Architecture — microservices, three containers + Redis
 

@@ -19,7 +19,7 @@ log = logging.getLogger("signature")
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 EXTRACT_VERSION = "extract_text_v1"
-CLASSIFY_VERSION = "classify_signature_v1"
+CLASSIFY_VERSION = "classify_signature_v2"
 
 app = FastAPI(title="Weybees Signature Service", version="1.0.0")
 
@@ -33,7 +33,7 @@ def _split(path: Path) -> tuple[str, str]:
 
 
 EXTRACT_SYSTEM, EXTRACT_USER = _split(PROMPTS_DIR / "extract_text_v1.md")
-CLASSIFY_SYSTEM, CLASSIFY_USER = _split(PROMPTS_DIR / "classify_signature_v1.md")
+CLASSIFY_SYSTEM, CLASSIFY_USER = _split(PROMPTS_DIR / "classify_signature_v2.md")
 
 
 @app.get("/health")
