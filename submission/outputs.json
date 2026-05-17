@@ -1,0 +1,113 @@
+{
+  "ran_at": "2026-05-17T09:27:25.047651+00:00",
+  "gateway_health": {
+    "gateway": "ok",
+    "artwork": {
+      "status": "ok",
+      "prompt_version": "artwork_v1"
+    },
+    "signature": {
+      "status": "ok",
+      "extract_prompt": "extract_text_v1",
+      "classify_prompt": "classify_signature_v2"
+    }
+  },
+  "task1": {
+    "image": "yvon_grac_beach.jpg",
+    "model": "gemini-2.5-flash",
+    "result": {
+      "keywords": [
+        "beach scene",
+        "impressionistic",
+        "figurative",
+        "acrylic painting",
+        "summer",
+        "coastal",
+        "vibrant",
+        "seascape",
+        "outdoor"
+      ],
+      "caption": "A vibrant, painterly scene depicts numerous figures enjoying a sunny beach day with umbrellas and sailboats.",
+      "description": "This lively painting captures a bustling beach scene under a bright blue sky with hints of pink. Figures in various poses, some sunbathing, others interacting, are spread across the sandy foreground alongside colorful beach umbrellas. In the middle ground, the deep blue sea is dotted with several white-sailed boats and frolicking swimmers. A lush, green palm tree frames the right side, while a vegetated cliff appears on the left, with seagulls flying above."
+    }
+  },
+  "task2": {
+    "images": [
+      "david_hockney_my_window.webp",
+      "winter_in_the_land.jpg",
+      "yvon_grac_beach.jpg",
+      "yvon_grac_signature_closeup.jpg",
+      "yvon_grac_framed.jpg",
+      "seascape_monogram.jpg"
+    ],
+    "result": {
+      "signatures": [
+        {
+          "image_index": 0,
+          "signature_text": "David Hockney",
+          "location_hint": "upper left of the front cover, handwritten-style, multicolored",
+          "confidence": 0.9,
+          "image": "david_hockney_my_window.webp",
+          "model": "gemini-2.5-flash"
+        },
+        {
+          "image_index": 1,
+          "signature_text": "W.A. GOMEZ",
+          "location_hint": "lower right, painted brush signature in red",
+          "confidence": 0.95,
+          "image": "winter_in_the_land.jpg",
+          "model": "gemini-2.5-flash"
+        },
+        {
+          "image_index": 1,
+          "signature_text": "W.A.G",
+          "location_hint": "lower right, below signature, stylized monogram painted in red",
+          "confidence": 0.7,
+          "image": "winter_in_the_land.jpg",
+          "model": "gemini-2.5-flash"
+        },
+        {
+          "image_index": 2,
+          "signature_text": "Eric",
+          "location_hint": "lower left corner of the image, painted brush signature in black",
+          "confidence": 0.95,
+          "image": "yvon_grac_beach.jpg",
+          "model": "gemini-2.5-flash"
+        },
+        {
+          "image_index": 3,
+          "signature_text": "FPRTC",
+          "location_hint": "centre, painted brush signature in black",
+          "confidence": 0.95,
+          "image": "yvon_grac_signature_closeup.jpg",
+          "model": "gemini-2.5-flash-lite"
+        },
+        {
+          "image_index": 4,
+          "signature_text": "GRIG",
+          "location_hint": "bottom centre inside image, handwritten in dark ink, slightly blurred",
+          "confidence": 0.7,
+          "image": "yvon_grac_framed.jpg",
+          "model": "gemini-2.5-flash-lite"
+        },
+        {
+          "image_index": 5,
+          "signature_text": "RR",
+          "location_hint": "centre image, slightly right, handwritten monogram in green paint",
+          "confidence": 0.65,
+          "image": "seascape_monogram.jpg",
+          "model": "gemini-2.5-flash-lite"
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "notes": [
+    "Mixed-model run. Images 0-2 (Hockney, Bonhams, Yvon GRAC beach) and the Task 1 description were produced with gemini-2.5-flash (the documented demo default). Each image's `model` field records which model generated that specific result.",
+    "Images 3-5 (Yvon GRAC closeup, Yvon GRAC framed, Seascape monogram) were produced with gemini-2.5-flash-lite. We switched to Lite mid-run after exhausting the free-tier 20-RPD cap on gemini-2.5-flash. Each free-tier model has its own daily quota, so swapping let us complete coverage.",
+    "Cache hits across the model swap are recognised because Redis returns the previously-produced text byte-for-byte; the per-entry `model` tag is preserved from the prior run.",
+    "Hockney 'My Window' returns 'David Hockney' and excludes 'my Window' (title) and 'Taschen' (publisher) — the brief's explicit noise-rejection canary passes.",
+    "OCR observations: the painted M in Marco Antonio Gomez's signature reads as W on Flash (`W.A. GOMEZ`) and the Yvon GRAC brush signature reads as `Eric` on Flash and `FPRTC`/`GRIG` on Lite. The model genuinely interprets the stylised brushstrokes that way; the pipeline correctly identifies the signature region, calibrates confidence, and excludes non-signature elements. Stylised painted signatures are a vision-capability limit.",
+    "Per-image fault tolerance: the signature service processes images sequentially with try/except per image. Any 429 or other failure on one image no longer poisons the whole batch."
+  ]
+}

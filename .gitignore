@@ -12,5 +12,4 @@ venv/
 .idea/
 .vscode/
 data/
-submission/outputs.json
 .claude/settings.local.json
