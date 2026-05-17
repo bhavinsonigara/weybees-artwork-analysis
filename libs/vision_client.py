@@ -14,7 +14,7 @@ from libs.image_loader import LoadedImage
 
 log = logging.getLogger(__name__)
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 DEFAULT_MAX_TOKENS = int(os.getenv("GEMINI_MAX_TOKENS", "4096"))
 # Gemini 2.5 models burn output tokens on hidden "thinking" before the visible
 # response. For deterministic structured-JSON tasks like ours we want every

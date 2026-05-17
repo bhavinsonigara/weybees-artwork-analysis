@@ -2,20 +2,26 @@
 
 This document explains the design choices behind the two pipelines. Mapped to the evaluation criteria in the brief: accuracy, noise rejection, output structure, prompt engineering, code quality, justification.
 
-## 1. Model selection — Gemini 2.0 Flash
+## 1. Model selection — Gemini 2.5 Flash (with Lite fallback)
 
-I evaluated four options:
+I evaluated five options:
 
 | model | pros | cons |
 |---|---|---|
-| Gemini 2.0 Flash | Strong vision, fast, native JSON-mode output, **generous free tier on AI Studio (no payment method required)** | Marginally weaker than Sonnet/Opus on the hardest multi-text noise rejection cases |
+| **Gemini 2.5 Flash** *(demo default)* | Best noise rejection AND best signature transcription on the test set, native JSON-mode | New AI Studio projects can have RPD as low as ~20 on free tier — fine for the demo but tight during iteration |
+| Gemini 2.5 Flash Lite *(testing fallback)* | Much higher free-tier RPD — useful during prompt iteration | Visibly weaker at stylised-handwriting OCR (`Y. GRAC` → `PERT` on one fixture). Noise rejection still works. |
+| Gemini 2.0 Flash | Strong vision | New projects often see free-tier RPD=0 for this model (account-eligibility quirk) |
 | Claude Sonnet 4.6 | Excellent vision + instruction following | Paid only; no permanent free tier |
-| Claude Opus 4.7 | Highest accuracy ceiling | 3-5× cost of Sonnet; overkill for a demo |
-| Llama 3.2 Vision (via Groq) | Free, very fast | Visibly weaker on the hard cases that matter for Task 2 noise rejection |
+| Llama 3.2 Vision (via Groq) | Free, very fast | Visibly weaker on the noise rejection cases that matter most for Task 2 |
 
-**Decision: Gemini 2.0 Flash.** The provider was chosen explicitly to keep the demo reproducible for a reviewer without forcing them to attach a payment method. The bottleneck on this task is *prompt design*, not model capacity — once the prompts are well-structured, Gemini 2.0 Flash produces clean JSON (using its native `response_mime_type="application/json"` mode) and rejects noise reliably. The model id is configurable via the `GEMINI_MODEL` env var.
+**Decision: Gemini 2.5 Flash for the demo.** Better signature OCR and equally strong noise rejection. The reviewer will see the higher-quality outputs. The Lite fallback is documented in `.env.example` for anyone whose AI Studio project quota can't accommodate a full notebook run — flip `GEMINI_MODEL=gemini-2.5-flash-lite` and the pipeline runs identically with a small quality cost on stylised painted signatures. Stylised signatures like the M in "M.A. Gomez" rendered as three vertical brush strokes can misread on either model; that's a vision-capability limit, not a prompt bug.
 
-The provider boundary is isolated in `libs/vision_client.py` (single file, ~70 lines). Swapping in Claude, GPT-4o, or a self-hosted vision model is a one-file change — services and prompts stay untouched.
+Two Gemini-specific configuration choices in `vision_client.py`:
+
+1. **Native JSON mode** via `response_mime_type="application/json"` — eliminates an entire class of "the model returned prose around the JSON" failures.
+2. **`thinking_budget=0`** — Gemini 2.5 models burn output tokens on hidden reasoning by default. For deterministic structured-JSON tasks every output token should go to the visible JSON; with thinking on, pass 1 truncated mid-string and pass 2 returned empty arrays. The override is configurable via `GEMINI_DISABLE_THINKING`.
+
+The provider boundary is isolated in `libs/vision_client.py` (single file, ~80 lines). Swapping in Claude, GPT-4o, or a self-hosted vision model is a one-file change — services and prompts stay untouched.
 
 ## 2. Architecture — microservices, three containers + Redis
 

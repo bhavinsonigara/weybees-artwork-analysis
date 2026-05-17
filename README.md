@@ -105,7 +105,7 @@ See `.env.example`. Key ones:
 | var | purpose |
 |---|---|
 | `GEMINI_API_KEY`    | required, your Google AI Studio key (https://aistudio.google.com/app/apikey — free) |
-| `GEMINI_MODEL`      | defaults to `gemini-2.0-flash` |
+| `GEMINI_MODEL`      | defaults to `gemini-2.5-flash`; fall back to `gemini-2.5-flash-lite` if your AI Studio project's daily quota is tight (see DESIGN.md §1) |
 | `REDIS_URL`         | Redis connection string (auto-set inside Docker) |
 | `SQLITE_PATH`       | Where the audit DB lives (auto-set inside Docker) |
 | `VISION_CACHE_TTL_SECONDS` | how long cached vision results live; defaults to 30 days |
