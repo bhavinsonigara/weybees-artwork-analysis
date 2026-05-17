@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
@@ -54,10 +53,12 @@ async def extract(req: ExtractRequest) -> ExtractResponse:
         except ImageLoadError as exc:
             raise HTTPException(status_code=400, detail=f"image load failed: {exc}")
 
-    results = await asyncio.gather(*[_process_image(i, img) for i, img in enumerate(loaded)])
     signatures: list[Signature] = []
-    for batch in results:
-        signatures.extend(batch)
+    for i, img in enumerate(loaded):
+        try:
+            signatures.extend(await _process_image(i, img))
+        except Exception as exc:
+            log.error("image %d processing failed: %s", i, exc)
     return ExtractResponse(signatures=signatures)
 
 

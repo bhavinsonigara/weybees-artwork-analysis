@@ -51,7 +51,7 @@ async def task2(req: Task2Request) -> JSONResponse:
 
 async def _proxy(url: str, payload: dict[str, Any]) -> JSONResponse:
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=600.0) as client:
             r = await client.post(url, json=payload)
     except httpx.HTTPError as exc:
         log.error("upstream call failed url=%s err=%s", url, exc)
