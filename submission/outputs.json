@@ -1,5 +1,5 @@
 {
-  "ran_at": "2026-05-17T09:27:25.047651+00:00",
+  "ran_at": "2026-05-18T17:40:21.106681+00:00",
   "gateway_health": {
     "gateway": "ok",
     "artwork": {
@@ -101,13 +101,5 @@
       ]
     }
   },
-  "errors": [],
-  "notes": [
-    "Mixed-model run. Images 0-2 (Hockney, Bonhams, Yvon GRAC beach) and the Task 1 description were produced with gemini-2.5-flash (the documented demo default). Each image's `model` field records which model generated that specific result.",
-    "Images 3-5 (Yvon GRAC closeup, Yvon GRAC framed, Seascape monogram) were produced with gemini-2.5-flash-lite. We switched to Lite mid-run after exhausting the free-tier 20-RPD cap on gemini-2.5-flash. Each free-tier model has its own daily quota, so swapping let us complete coverage.",
-    "Cache hits across the model swap are recognised because Redis returns the previously-produced text byte-for-byte; the per-entry `model` tag is preserved from the prior run.",
-    "Hockney 'My Window' returns 'David Hockney' and excludes 'my Window' (title) and 'Taschen' (publisher) — the brief's explicit noise-rejection canary passes.",
-    "OCR observations: the painted M in Marco Antonio Gomez's signature reads as W on Flash (`W.A. GOMEZ`) and the Yvon GRAC brush signature reads as `Eric` on Flash and `FPRTC`/`GRIG` on Lite. The model genuinely interprets the stylised brushstrokes that way; the pipeline correctly identifies the signature region, calibrates confidence, and excludes non-signature elements. Stylised painted signatures are a vision-capability limit.",
-    "Per-image fault tolerance: the signature service processes images sequentially with try/except per image. Any 429 or other failure on one image no longer poisons the whole batch."
-  ]
+  "errors": []
 }
